@@ -2,6 +2,14 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 
+
+# Category object for clubs (dynamic, input through CMS)
+class Category(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
 # Schema object for user profile
 # ToDo - Nothing in mind right now
 class Profile(models.Model):
@@ -19,7 +27,8 @@ class Profile(models.Model):
 # Todo - Nothing right now
 class Club(models.Model):
     name = models.CharField(max_length=100)
-    created_on = models.DateField(default=timezone.now())    
+    category = models.ForeignKey(Category, on_delete=models.DO_NOTHING, blank=True, null=True)
+    created_on = models.DateField(default=timezone.now)    
     creator = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name="creator")
     members = models.ManyToManyField(User, related_name="members")
     club_admins = models.ManyToManyField(User, related_name="admins")
