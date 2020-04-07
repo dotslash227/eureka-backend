@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
+from django.contrib.auth.admin import UserAdmin
 from .models import Profile, Club, Category
 
 # Profile administration to be embedded into already existing user
@@ -8,7 +9,7 @@ class ProfileAdmin(admin.StackedInline):
     model = Profile
 
 # Registering mutated admin panel
-class NewUserAdmin(admin.ModelAdmin):
+class NewUserAdmin(UserAdmin):
     list_display = ["username", "first_name", "last_name", "email", "date_joined"]
     list_filter = ["is_active", "is_staff"]
     search_fields = ["username", "first_name", "last_name"]
