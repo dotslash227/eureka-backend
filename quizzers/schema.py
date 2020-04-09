@@ -1,24 +1,31 @@
 import graphene
-import json
 from graphene_django.types import DjangoObjectType
 from django.contrib.auth.models import User
 from django.contrib.auth import login, logout, authenticate
-from .models import Category, Profile
+from .models import Category, Profile, Club
 
 
 # Start of Types
 class CategoryType(DjangoObjectType):
+    # Category Type
     class Meta:
         model = Category
 
 class UserProfileType(DjangoObjectType):
+    # GraphQL Type for user's profile
     class Meta:
         model = Profile
         fields = ("user",)
 
 class UserType(DjangoObjectType):
+    # GraphQl type for user
     class Meta:
-        model = User        
+        model = User       
+
+class ClubType(DjangoObjectType):
+    # GraphQL Type for the club
+    class Meta:
+        model = Club
 
 # End of Types
 
@@ -27,9 +34,12 @@ class UserType(DjangoObjectType):
 
 class Query(object):
     all_categories = graphene.List(CategoryType)
+    all_clubs = graphene.List(ClubType)
 
     def resolve_all_categories(self, info, **kwargs):
         return Category.objects.all()
+    def resolve_all_clubs(self, info, **kwargs):
+        return Club.objects.all()
 
 # End of Queries Section
 
@@ -106,8 +116,33 @@ class SignupMutation(graphene.Mutation):
         else:
             raise Exception("User with the same username already exists")        
 
+
+# Mutation for letting a user creating a new class
+# Only but required Parameters that have to be passed by the app: Name of club, category id, user id of creator
+class CreateClubMutation(graphene.Mutation):
+    class Arguments:
+        name = graphene.String(required=True)
+        category_id = graphene.Int(required=True)
+        user_id = graphene.Int(required=True)
+
+    club = graphene.Field(ClubType)
+
+    def mutate(self, info, name, category_id, user_id):
+        user = User.objects.get(pk=user_id)
+        category = Category.objects.get(pk=category_id)
+        try:
+            # Check if the club with the same name exists or not in the same category or not
+            club = Club.objects.get(name__iexact=name, category=category)
+        except:
+            # If no club exists, then create a new club
+            new_club = Club.objects.create(name=name, category=category, creator=user)
+            return CreateClubMutation(club=new_club)
+        else:
+            raise Exception("Two clubs in the same category cannot have the same name")
+
 class Mutation(graphene.ObjectType):
     new_category = CategoryMutation.Field()
     login = LoginMutation.Field()
     signup = SignupMutation.Field()
+    create_club = CreateClubMutation.Field()
 # End of Mutations
