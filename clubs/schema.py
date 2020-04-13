@@ -13,12 +13,16 @@ class InvitationType(DjangoObjectType):
 class JoinRequestType(DjangoObjectType):
     class Meta:
         model = JoinRequest
+class JoinStatusType(graphene.ObjectType):
+    status = graphene.String()
+
 # End of Object Types
 
 # Start of queries
 class Query(object):
     invitations_byclub = graphene.List(InvitationType, clubdId=graphene.Int())
     join_requests_byclub = graphene.List(JoinRequestType, clubId=graphene.Int())
+    join_status = graphene.Field(JoinStatusType, clubId=graphene.Int(required=True), senderId=graphene.Int(required=True))
 
     def resolve_invitations_by_club(self, info, **kwargs):
         club_id = kwargs.get("clubdId")
@@ -26,13 +30,30 @@ class Query(object):
         invites = Invitation.objects.filter(club=club)
 
         return invites
-
     def resolve_join_requests_byclub(self, info, **kwargs):
         club_id = kwargs.get("clubId")
         club = Club.objects.get(pk=club_id)
         requests = JoinRequest.objects.filter(club=club)
 
         return requests
+    def resolve_join_status(self, info, **kwargs):           
+        club_id = kwargs.get("clubId")        
+        sender_id = kwargs.get("senderId")
+        club = Club.objects.get(id=club_id)        
+        user = User.objects.get(id=sender_id)        
+        club_members = club.members.all()
+        if user in club_members:
+            response = "Already a Member"
+        else:            
+            try:
+                join = JoinRequest.objects.get(club=club, sender=user)
+            except:
+                response = "showjoin"                
+            else:
+                response = "Pending Request"
+
+        return {"status":response}
+    
 # End of Queries
 
 
@@ -85,6 +106,7 @@ class JoinRequestMutation(graphene.Mutation):
             return JoinRequestMutation(join_request=jr)
         else:
             raise Exception("A pending request has already been sent to the admin of this club")
+
 
 class Mutation(graphene.ObjectType):
     create_club_invitation = CreateInvitationMutation.Field()

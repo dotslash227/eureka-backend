@@ -35,11 +35,16 @@ class ClubType(DjangoObjectType):
 class Query(object):
     all_categories = graphene.List(CategoryType)
     all_clubs = graphene.List(ClubType)
+    clubs_bycategory = graphene.List(ClubType, categoryId=graphene.Int(required=True))
 
     def resolve_all_categories(self, info, **kwargs):
         return Category.objects.all()
     def resolve_all_clubs(self, info, **kwargs):
         return Club.objects.all()
+    def resolve_clubs_bycategory(self, info, **kwargs):
+        category_id = kwargs.get("categoryId")
+        category = Category.objects.get(pk=category_id)
+        return Club.objects.filter(category=category)
 
 # End of Queries Section
 
@@ -124,10 +129,12 @@ class CreateClubMutation(graphene.Mutation):
         name = graphene.String(required=True)
         category_id = graphene.Int(required=True)
         user_id = graphene.Int(required=True)
+        description = graphene.String(required=True)
+        max_players = graphene.Int(required=True)
 
     club = graphene.Field(ClubType)
 
-    def mutate(self, info, name, category_id, user_id):
+    def mutate(self, info, name, category_id, user_id, description, max_players):
         user = User.objects.get(pk=user_id)
         category = Category.objects.get(pk=category_id)
         try:
@@ -135,7 +142,7 @@ class CreateClubMutation(graphene.Mutation):
             club = Club.objects.get(name__iexact=name, category=category)
         except:
             # If no club exists, then create a new club
-            new_club = Club.objects.create(name=name, category=category, creator=user)
+            new_club = Club.objects.create(name=name, category=category, creator=user, description=description, max_players=max_players)
             return CreateClubMutation(club=new_club)
         else:
             raise Exception("Two clubs in the same category cannot have the same name")

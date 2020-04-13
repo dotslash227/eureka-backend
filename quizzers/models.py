@@ -28,6 +28,8 @@ class Profile(models.Model):
 class Club(models.Model):
     name = models.CharField(max_length=100)
     category = models.ForeignKey(Category, on_delete=models.DO_NOTHING, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    max_players = models.IntegerField(default=1)
     created_on = models.DateField(default=timezone.now)    
     creator = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name="creator")
     members = models.ManyToManyField(User, related_name="members")
