@@ -15,6 +15,8 @@ class JoinRequestType(DjangoObjectType):
         model = JoinRequest
 class JoinStatusType(graphene.ObjectType):
     status = graphene.String()
+class JoinRequestResponseType(graphene.ObjectType):
+    status = graphene.String()
 
 # End of Object Types
 
@@ -22,7 +24,7 @@ class JoinStatusType(graphene.ObjectType):
 class Query(object):
     invitations_byclub = graphene.List(InvitationType, clubdId=graphene.Int())
     join_requests_byclub = graphene.List(JoinRequestType, clubId=graphene.Int())
-    join_status = graphene.Field(JoinStatusType, clubId=graphene.Int(required=True), senderId=graphene.Int(required=True))
+    join_status = graphene.Field(JoinStatusType, clubId=graphene.Int(required=True), senderId=graphene.Int(required=True))    
 
     def resolve_invitations_by_club(self, info, **kwargs):
         club_id = kwargs.get("clubdId")
@@ -108,8 +110,30 @@ class JoinRequestMutation(graphene.Mutation):
             raise Exception("A pending request has already been sent to the admin of this club")
 
 
+# Mutation for accepting or rejecting a join request by a user for a club
+# Parameters to be sent: ClubId, senderId, Response as "yes" or "no"
+class JoinRequestResponseMutation(graphene.Mutation):
+    class Arguments:
+        club_id = graphene.Int(required=True)
+        sender_id = graphene.Int(required=True)
+        decision = graphene.String(required=True)
+    response = graphene.Field(JoinRequestResponseType)
+
+    def mutate(self, info, club_id, sender_id, decision):
+        club = Club.objects.get(pk=club_id)
+        sender = User.objects.get(pk=sender_id)
+        instance = JoinRequest.objects.get(club=club, sender=sender)
+        response = "deleted"
+        if decision == "yes":
+            club.members.add(sender)
+            response = "added"
+        instance.delete()
+
+        return JoinRequestResponseMutation(response={"status":response})
+
 class Mutation(graphene.ObjectType):
     create_club_invitation = CreateInvitationMutation.Field()
     create_club_joinrequest = JoinRequestMutation.Field()
+    join_request_repond = JoinRequestResponseMutation.Field()
 
 # End of Mutations
