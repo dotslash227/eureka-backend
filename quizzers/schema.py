@@ -3,7 +3,7 @@ from graphene_django.types import DjangoObjectType
 from django.contrib.auth.models import User
 from django.contrib.auth import login, logout, authenticate
 from .models import Category, Profile, Club
-
+from clubs.models import JoinRequest
 
 # Start of Types
 class CategoryType(DjangoObjectType):
@@ -27,6 +27,28 @@ class ClubType(DjangoObjectType):
     class Meta:
         model = Club
 
+class JoinClubType(DjangoObjectType):
+    status = graphene.String(args={"userId":graphene.Int()})
+    
+    class Meta:
+        model = Club
+
+    def resolve_status(self, info, **args):        
+        user_id = args.get("userId")        
+        user = User.objects.get(pk=user_id)
+        print (user)
+        members = self.members.all()
+        if user in members:
+            return "Already a Member"
+        else:            
+            try:
+                join = JoinRequest.objects.get(club=self, sender=user)
+            except:
+                return "ok"                
+            else:
+                return "Pending Request"
+        
+
 # End of Types
 
 
@@ -35,15 +57,15 @@ class ClubType(DjangoObjectType):
 class Query(object):
     all_categories = graphene.List(CategoryType)
     all_clubs = graphene.List(ClubType)
-    clubs_bycategory = graphene.List(ClubType, categoryId=graphene.Int(required=True))
+    clubs_bycategory = graphene.List(JoinClubType, categoryId=graphene.Int(required=True))
 
     def resolve_all_categories(self, info, **kwargs):
         return Category.objects.all()
     def resolve_all_clubs(self, info, **kwargs):
         return Club.objects.all()
-    def resolve_clubs_bycategory(self, info, **kwargs):
+    def resolve_clubs_bycategory(self, info, **kwargs, ):
         category_id = kwargs.get("categoryId")
-        category = Category.objects.get(pk=category_id)
+        category = Category.objects.get(pk=category_id)        
         return Club.objects.filter(category=category)
 
 # End of Queries Section
@@ -85,7 +107,7 @@ class LoginMutation(graphene.Mutation):
         else:
             print (user)
             if user.is_active:
-                user_profile = Profile.objects.get(user=user)
+                user_profile = Profile.objects.get(user=user)                
                 return LoginMutation(profile=user_profile)
             else:
                 return Exception("User is disabled")
