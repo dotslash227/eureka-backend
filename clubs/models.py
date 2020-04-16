@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 # An action has to be made in schema.py via graphql
 # that would accept or reject the user and change member list of the club
 class Invitation(models.Model):
-    date_created = models.DateField(default=timezone.now())
+    date_created = models.DateField(default=timezone.now)
     sent_by = models.ForeignKey(User, related_name="sender", on_delete=models.DO_NOTHING)
     sent_to = models.ForeignKey(User, related_name="receiver", on_delete=models.DO_NOTHING)
     club = models.ForeignKey(Club, on_delete=models.DO_NOTHING)
@@ -21,7 +21,7 @@ class Invitation(models.Model):
 # An action has to be made in schema.py via graphql
 # that would accept or reject the user and change member list of the club by admins of the club
 class JoinRequest(models.Model):
-    date = models.DateField(default=timezone.now())
+    date = models.DateField(default=timezone.now)
     club = models.ForeignKey(Club, on_delete=models.DO_NOTHING)
     sender = models.ForeignKey(User, on_delete=models.DO_NOTHING)
 
