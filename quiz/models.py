@@ -42,4 +42,4 @@ class Option(models.Model):
     ))
 
     def __str__(self):
-        return self.answer
+        return self.option
