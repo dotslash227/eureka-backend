@@ -57,23 +57,20 @@ class Query(object):
     all_categories = graphene.List(CategoryType)
     all_clubs = graphene.List(ClubType)
     clubs_bycategory = graphene.List(JoinClubType, categoryId=graphene.Int(required=False), name=graphene.String(required=False))
+    clubs_byuserid = graphene.List(ClubType, userId=graphene.Int(required=True))
 
     def resolve_all_categories(self, info, **kwargs):
         return Category.objects.all()
     def resolve_all_clubs(self, info, **kwargs):
         return Club.objects.all()
+    def resolve_clubs_byuderid(self, info, **kwargs):
+        user_id = kwargs.get("userId")
+        user = User.objects.get(pk=user_id)        
+        return Club.objects.filter(members=user)        
     def resolve_clubs_bycategory(self, info, **kwargs):
         category_id = kwargs.get("categoryId") if kwargs.get("categoryId") else None
         name = kwargs.get("name") if kwargs.get("name") else None
-        category = Category.objects.get(pk=category_id) if category_id else None
-        # if kwargs.get("categoryId"):
-        #     categoryId = kwargs.get("categoryId")
-        # else:
-        #     categoryId = None
-        # if kwargs.get("name"):
-        #     name = kwargs.gett("name")
-        # else:
-        #     name = None                        
+        category = Category.objects.get(pk=category_id) if category_id else None        
         if name and category:            
             print ("name and cat")
             return Club.objects.filter(category=category, name__icontains=name)
@@ -82,16 +79,7 @@ class Query(object):
             return Club.objects.filter(name__icontains=name)
         if category and not name:
             print ("cat only")
-            return Club.objects.filter(category=category)
-
-        # if kwargs.get("name"): 
-        #     name = kwargs.get("name")
-        #     if name and category:            
-        #         return Club.objects.filter(category=category, name__icontains=name)
-        #     if name and not category:
-        #         return Club.objects.filter(name__icontains=name)
-        # if category and not name:
-        #     return Club.objects.filter(category=category)
+            return Club.objects.filter(category=category)        
 
 # End of Queries Section
 

@@ -48,18 +48,16 @@ class Query(object):
         # method to resolve upcoming quizzes to be displayed on the main homepage
         user_id = kwargs.get("userId")
         user = User.objects.get(pk=user_id)
+        quizes = []
         try:
             user_clubs = Club.objects.filter(members=user)            
         except:
             raise Exception("User not part of clubs")
-        else:
-            quizes = []
-            for counter,club in enumerate(user_clubs):
-                if counter == 0:                    
-                    quizes = Quiz.objects.filter(club=club)
-                else:                    
-                    query = Quiz.objects.filter(club=club)
-                    quizes = quizes | query                    
+        else:            
+            for club in user_clubs:
+                quiz_list = Quiz.objects.filter(club=club)
+                for each in quiz_list:
+                    quizes.append(each)                    
         return quizes
 
 
