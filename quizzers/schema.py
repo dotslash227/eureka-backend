@@ -63,7 +63,7 @@ class Query(object):
         return Category.objects.all()
     def resolve_all_clubs(self, info, **kwargs):
         return Club.objects.all()
-    def resolve_clubs_byuderid(self, info, **kwargs):
+    def resolve_clubs_byuserid(self, info, **kwargs):
         user_id = kwargs.get("userId")
         user = User.objects.get(pk=user_id)        
         return Club.objects.filter(members=user)        
