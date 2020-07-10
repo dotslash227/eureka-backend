@@ -71,11 +71,9 @@ class Query(object):
         category_id = kwargs.get("categoryId") if kwargs.get("categoryId") else None
         name = kwargs.get("name") if kwargs.get("name") else None
         category = Category.objects.get(pk=category_id) if category_id else None        
-        if name and category:            
-            print ("name and cat")
+        if name and category:                        
             return Club.objects.filter(category=category, name__icontains=name)
-        if name and not category:
-            print  ("name only")
+        if name and not category:            
             return Club.objects.filter(name__icontains=name)
         if category and not name:
             print ("cat only")
