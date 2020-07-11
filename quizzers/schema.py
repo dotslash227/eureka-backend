@@ -75,8 +75,7 @@ class Query(object):
             return Club.objects.filter(category=category, name__icontains=name)
         if name and not category:            
             return Club.objects.filter(name__icontains=name)
-        if category and not name:
-            print ("cat only")
+        if category and not name:            
             return Club.objects.filter(category=category)        
 
 # End of Queries Section
