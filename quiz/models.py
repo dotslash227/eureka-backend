@@ -7,7 +7,7 @@ quiz_types = (
     ("mcq", "MCQ"),
     ("knockout", "Knockout"),
     ("blanks", "Fill In the Blanks"),
-    ("written", "written")
+    ("written", "Written")
 )
 
 class Quiz(models.Model):

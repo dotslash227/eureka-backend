@@ -25,6 +25,11 @@ class Query(object):
     questions_by_quiz = graphene.List(QuestionType, quizId=graphene.Int(required=True))
     options_by_question = graphene.List(OptionType, questionId=graphene.Int(required=True))
     new_quizes_by_user = graphene.List(QuizType, userId=graphene.Int(required=True))
+    quiz = graphene.List(QuizType, quizId=graphene.Int(required=True))
+
+    def resolve_quiz(self, info, **kwargs):
+        quiz_id = kwargs.get("quizId")
+        return Quiz.objects.get(pk=quiz_id)
 
     def resolve_quiz_by_clubs(self, info, **kwargs):
         # Method to resolve quiz by clubs query
