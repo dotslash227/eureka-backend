@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Quiz, Question, Option
+from .models import Quiz, Question, Option, Results
 
 class OptionInline(admin.StackedInline):    
     model = Option
@@ -16,3 +16,4 @@ class QuizAdmin(admin.ModelAdmin):
 admin.site.register(Quiz, QuizAdmin)
 admin.site.register(Question)
 admin.site.register(Option)
+admin.site.register(Results)

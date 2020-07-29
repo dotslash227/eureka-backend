@@ -43,3 +43,12 @@ class Option(models.Model):
 
     def __str__(self):
         return self.option
+
+class Results(models.Model):
+    date = models.DateField(default=timezone.now)
+    quiz = models.ForeignKey(Quiz, on_delete=models.DO_NOTHING)
+    user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    score = models.FloatField(default=0.00)
+
+    def __str__(self):
+        return "Results for Quiz id: %s and for user id: %s with name : %s" % (self.pk, self.user.id, self.user.username)

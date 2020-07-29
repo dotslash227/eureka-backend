@@ -2,7 +2,7 @@ import graphene
 from graphene_django.types import DjangoObjectType
 from django.contrib.auth.models import User
 from quizzers.models import Club
-from .models import Quiz, Question, Option
+from .models import Quiz, Question, Option, Results
 from django.utils import timezone
 
 # Start of DjangoModel Query Typeqs
@@ -17,6 +17,10 @@ class QuestionType(DjangoObjectType):
 class OptionType(DjangoObjectType):
     class Meta:
         model = Option
+
+class ResultType(DjangoObjectType):
+    class Meta:
+        model = Results
 # End of Query Types
 
 # Queries for quizzes
@@ -28,7 +32,7 @@ class Query(object):
     quiz = graphene.Field(QuizType, quizId=graphene.Int(required=True))
 
     def resolve_quiz(self, info, **kwargs):
-        quiz_id = kwargs.get("quizId")
+        quiz_id = kwargs.get("quizId")        
         return Quiz.objects.get(pk=quiz_id)
 
     def resolve_quiz_by_clubs(self, info, **kwargs):
@@ -62,8 +66,36 @@ class Query(object):
             for club in user_clubs:
                 quiz_list = Quiz.objects.filter(club=club)
                 for each in quiz_list:
-                    quizes.append(each)                    
+                    print(each)
+                    try:
+                        result = Results.objects.get(quiz=each, user=user)
+                    except:
+                        quizes.append(each)                                        
+
         return quizes
 
-
 # End of Queries for quizzes
+
+# Start of Mutations for Quizes
+class CreateResultMutation(graphene.Mutation):
+    class Arguments:
+        quiz_id = graphene.Int(required=True)
+        user_id = graphene.Int(required=True)
+        score = graphene.Float(required=True)
+    
+    result = graphene.Field(ResultType)
+
+    def mutate(self, info, quiz_id, user_id, score):
+        quiz = Quiz.objects.get(pk=quiz_id)
+        user = User.objects.get(pk=user_id)        
+        results = Results.objects.filter(quiz=quiz, user=user)
+        if len(results) > 0:
+            raise Exception("User already has taken the quiz")
+        else:
+            result = Results(quiz=quiz, user=user, score=score)
+            result.save()
+            return CreateResultMutation(result=result)
+
+
+class Mutation(graphene.ObjectType):
+    create_result_mutation = CreateResultMutation.Field()

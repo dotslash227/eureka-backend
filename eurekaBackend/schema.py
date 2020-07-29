@@ -15,6 +15,7 @@ class Query(
 class Mutation(
     quizzers.schema.Mutation,
     clubs.schema.Mutation,
+    quiz.schema.Mutation,
     graphene.ObjectType
     ):
     pass
