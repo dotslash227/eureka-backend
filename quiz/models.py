@@ -49,6 +49,12 @@ class Results(models.Model):
     quiz = models.ForeignKey(Quiz, on_delete=models.DO_NOTHING)
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     score = models.FloatField(default=0.00)
+    total_questions = models.FloatField(default=0.00)
+    percentage = models.FloatField(default=0.00)
+
+    def save(self, *args, **kwargs):
+        self.percentage = self.score / self.total_questions * 100
+        super(Results, self).save(*args, **kwargs)
 
     def __str__(self):
         return "Results for Quiz id: %s and for user id: %s with name : %s" % (self.pk, self.user.id, self.user.username)

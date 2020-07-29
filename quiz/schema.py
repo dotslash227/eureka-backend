@@ -91,8 +91,8 @@ class CreateResultMutation(graphene.Mutation):
         results = Results.objects.filter(quiz=quiz, user=user)
         if len(results) > 0:
             raise Exception("User already has taken the quiz")
-        else:
-            result = Results(quiz=quiz, user=user, score=score)
+        else:            
+            result = Results(quiz=quiz, user=user, score=score, total_questions=quiz.question_set.all().count())
             result.save()
             return CreateResultMutation(result=result)
 
