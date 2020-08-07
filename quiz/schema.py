@@ -21,6 +21,9 @@ class OptionType(DjangoObjectType):
 class ResultType(DjangoObjectType):
     class Meta:
         model = Results
+class QuizResponsesType(graphene.InputObjectType):
+    question_id = graphene.Int(required=True)
+    answer = graphene.String(required=True)
 # End of Query Types
 
 # Queries for quizzes
@@ -81,11 +84,11 @@ class CreateResultMutation(graphene.Mutation):
     class Arguments:
         quiz_id = graphene.Int(required=True)
         user_id = graphene.Int(required=True)
-        score = graphene.Float(required=True)
+        answers = graphene.List(QuizResponsesType)
     
     result = graphene.Field(ResultType)
 
-    def mutate(self, info, quiz_id, user_id, score):
+    def mutate(self, info, quiz_id, user_id, answers):
         quiz = Quiz.objects.get(pk=quiz_id)
         user = User.objects.get(pk=user_id)        
         results = Results.objects.filter(quiz=quiz, user=user)
