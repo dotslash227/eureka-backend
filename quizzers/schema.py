@@ -58,7 +58,11 @@ class Query(object):
     all_clubs = graphene.List(ClubType)
     clubs_bycategory = graphene.List(JoinClubType, categoryId=graphene.Int(required=False), name=graphene.String(required=False))
     clubs_byuserid = graphene.List(ClubType, userId=graphene.Int(required=True))
+    club = graphene.Field(ClubType, clubdId=graphene.Int(required=True))
 
+    def resolve_club(self, info, **kwargs):
+        club_id = kwargs.get("clubdId")
+        return Club.objects.get(pk=club_id)
     def resolve_all_categories(self, info, **kwargs):
         return Category.objects.all()
     def resolve_all_clubs(self, info, **kwargs):
