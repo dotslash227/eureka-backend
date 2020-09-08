@@ -5,18 +5,25 @@ from quizzers.models import Club
 from quizzers.schema import UserType, ClubType
 from .models import Invitation, JoinRequest
 
+
 # Start of Object Types
 class InvitationType(DjangoObjectType):
     class Meta:
         model = Invitation
 
+
 class JoinRequestType(DjangoObjectType):
     class Meta:
         model = JoinRequest
+
+
 class JoinStatusType(graphene.ObjectType):
     status = graphene.String()
+
+
 class JoinRequestResponseType(graphene.ObjectType):
     status = graphene.String()
+
 
 # End of Object Types
 
@@ -24,7 +31,8 @@ class JoinRequestResponseType(graphene.ObjectType):
 class Query(object):
     invitations_byclub = graphene.List(InvitationType, clubdId=graphene.Int())
     join_requests_byclub = graphene.List(JoinRequestType, clubId=graphene.Int())
-    join_status = graphene.Field(JoinStatusType, clubId=graphene.Int(required=True), senderId=graphene.Int(required=True))    
+    join_status = graphene.Field(JoinStatusType, clubId=graphene.Int(required=True),
+                                 senderId=graphene.Int(required=True))
 
     def resolve_invitations_by_club(self, info, **kwargs):
         club_id = kwargs.get("clubdId")
@@ -32,30 +40,33 @@ class Query(object):
         invites = Invitation.objects.filter(club=club)
 
         return invites
+
     def resolve_join_requests_byclub(self, info, **kwargs):
         club_id = kwargs.get("clubId")
         club = Club.objects.get(pk=club_id)
         requests = JoinRequest.objects.filter(club=club)
 
         return requests
-    def resolve_join_status(self, info, **kwargs):           
-        club_id = kwargs.get("clubId")        
+
+    def resolve_join_status(self, info, **kwargs):
+        club_id = kwargs.get("clubId")
         sender_id = kwargs.get("senderId")
-        club = Club.objects.get(id=club_id)        
-        user = User.objects.get(id=sender_id)        
+        club = Club.objects.get(id=club_id)
+        user = User.objects.get(id=sender_id)
         club_members = club.members.all()
         if user in club_members:
             response = "Already a Member"
-        else:            
+        else:
             try:
                 join = JoinRequest.objects.get(club=club, sender=user)
             except:
-                response = "showjoin"                
+                response = "showjoin"
             else:
                 response = "Pending Request"
 
-        return {"status":response}
-    
+        return {"status": response}
+
+
 # End of Queries
 
 
@@ -72,7 +83,7 @@ class CreateInvitationMutation(graphene.Mutation):
     invitation = graphene.Field(InvitationType)
 
     def mutate(self, info, inviter_id, invitee_email, club_id):
-        inviter = User.objects.get(pk=inviter_id)            
+        inviter = User.objects.get(pk=inviter_id)
         club = Club.objects.get(pk=club_id)
 
         try:
@@ -88,13 +99,14 @@ class CreateInvitationMutation(graphene.Mutation):
             else:
                 raise Exception("An invitation has already been sent to the user for this  club")
 
+
 # Mutation for Join request creation
 # Paramters to be sent (required) => Club Id and Sender Id
 class JoinRequestMutation(graphene.Mutation):
     class Arguments:
         club_id = graphene.Int(required=True)
         sender_id = graphene.Int(required=True)
-    
+
     join_request = graphene.Field(JoinRequestType)
 
     def mutate(self, info, club_id, sender_id):
@@ -117,6 +129,7 @@ class JoinRequestResponseMutation(graphene.Mutation):
         club_id = graphene.Int(required=True)
         sender_id = graphene.Int(required=True)
         decision = graphene.String(required=True)
+
     response = graphene.Field(JoinRequestResponseType)
 
     def mutate(self, info, club_id, sender_id, decision):
@@ -129,7 +142,8 @@ class JoinRequestResponseMutation(graphene.Mutation):
             response = "added"
         instance.delete()
 
-        return JoinRequestResponseMutation(response={"status":response})
+        return JoinRequestResponseMutation(response={"status": response})
+
 
 class Mutation(graphene.ObjectType):
     create_club_invitation = CreateInvitationMutation.Field()
