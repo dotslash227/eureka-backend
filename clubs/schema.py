@@ -101,7 +101,7 @@ class CreateInvitationMutation(graphene.Mutation):
 
 
 # Mutation for Join request creation
-# Paramters to be sent (required) => Club Id and Sender Id
+# Parameters to be sent (required) => Club Id and Sender Id
 class JoinRequestMutation(graphene.Mutation):
     class Arguments:
         club_id = graphene.Int(required=True)
@@ -114,7 +114,7 @@ class JoinRequestMutation(graphene.Mutation):
         sender = User.objects.get(pk=sender_id)
 
         try:
-            jr = JoinRequest.objects.get(club=club, sender=sender)
+            JoinRequest.objects.get(club=club, sender=sender)
         except:
             jr = JoinRequest.objects.create(club=club, sender=sender)
             return JoinRequestMutation(join_request=jr)

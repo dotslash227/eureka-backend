@@ -146,10 +146,11 @@ class SignupMutation(graphene.Mutation):
         except:
             # Check if a user with the same email exists or not
             try:
-                user = User.objects.get(email=email)     
+                User.objects.get(email=email)
             except:
                 user = User.objects.create(username=username, first_name=firstName, last_name=lastName, email=email)
                 user.set_password(password)
+                user.save()
                 profile = Profile.objects.create(user=user)
                 return SignupMutation(profile=profile)
             else:
