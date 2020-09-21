@@ -85,7 +85,7 @@ class CreateResultMutation(graphene.Mutation):
         quiz_id = graphene.Int(required=True)
         user_id = graphene.Int(required=True)
         answers = graphene.List(QuizResponseType)
-    
+
     result = graphene.Field(ResultType)
 
     # Note: When checking answers for result computation
@@ -93,16 +93,39 @@ class CreateResultMutation(graphene.Mutation):
     # Make sure you convert the answerId to int type from str
 
     def mutate(self, info, quiz_id, user_id, answers):
-        print (answers)
         quiz = Quiz.objects.get(pk=quiz_id)
         user = User.objects.get(pk=user_id)        
         results = Results.objects.filter(quiz=quiz, user=user)
         if len(results) > 0:
             raise Exception("User already has taken the quiz")
-        else:            
-            result = Results(quiz=quiz, user=user, score=score, total_questions=quiz.question_set.all().count())
+        else:
+            score = 0
+            wrong = 0
+            questions = Question.objects.filter(quiz=quiz)
+            for response in answers:
+                question = questions.get(pk=int(response.question_id))
+                correct_response = Option.objects.get(question=question, correct=True)
+                print("correct response", correct_response)
+                if quiz.quiz_type == "mcq":
+                    if int(response.answer) == correct_response.id:
+                        score += 1
+                    else:
+                        wrong += 1
+                elif quiz.quiz_type == "blanks":
+                    if response.answer == correct_response.option:
+                        score += 1
+                    else:
+                        wrong += 1
+                elif quiz.quiz_type == "written":
+                    if response.answer == correct_response.option:
+                        score += 1
+                    else:
+                        wrong += 1
+            print("wrong:{} and correct: {}".format(wrong, score))
+            question_count = quiz.question_set.all().count()
+            result = Results(quiz=quiz, user=user, score=score, total_questions=question_count)
             result.save()
-            return CreateResultMutation(result=None)
+            return CreateResultMutation(result=result)
 
 
 class Mutation(graphene.ObjectType):
