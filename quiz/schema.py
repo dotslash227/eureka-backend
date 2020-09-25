@@ -21,6 +21,11 @@ class OptionType(DjangoObjectType):
 class ResultType(DjangoObjectType):
     class Meta:
         model = Results
+class UserStatType(graphene.ObjectType):
+    quiz_taken = graphene.Int()
+    quiz_won = graphene.Int()
+    quiz_lost = graphene.Int()
+    win_percentage = graphene.Float()
 class QuizResponseType(graphene.InputObjectType):
     question_id = graphene.String(required=True)
     answer = graphene.String(required=True)
@@ -33,6 +38,33 @@ class Query(object):
     options_by_question = graphene.List(OptionType, questionId=graphene.Int(required=True))
     new_quizes_by_user = graphene.List(QuizType, userId=graphene.Int(required=True))
     quiz = graphene.Field(QuizType, quizId=graphene.Int(required=True))
+    results = graphene.List(ResultType, userId=graphene.Int(required=True))
+    user_stats = graphene.Field(UserStatType, userId=graphene.Int(required=True))
+
+    def resolve_user_stats(self, info, **kwargs):
+        taken, won, lost, win_percentage = 0, 0, 0, 0.00
+        user_id = kwargs.get("userId")
+        user = User.objects.get(pk=user_id)
+        results = Results.objects.filter(user=user)
+        taken = results.count()
+        for result in results:
+            if result.percentage > 70:
+                won += 1
+            else:
+                lost += 1
+        win_percentage = won / taken * 100
+        user_stat = {
+            "quiz_taken":taken,
+            "quiz_won":won,
+            "quiz_lost": lost,
+            "win_percentage": win_percentage
+        }
+        return user_stat
+
+    def resolve_results(self, info, **kwargs):
+        user_id = kwargs.get("userId")
+        user = User.objects.get(pk=user_id)
+        return Results.objects.filter(user=user)
 
     def resolve_quiz(self, info, **kwargs):
         quiz_id = kwargs.get("quizId")        
@@ -105,7 +137,6 @@ class CreateResultMutation(graphene.Mutation):
             for response in answers:
                 question = questions.get(pk=int(response.question_id))
                 correct_response = Option.objects.get(question=question, correct=True)
-                print("correct response", correct_response)
                 if quiz.quiz_type == "mcq":
                     if int(response.answer) == correct_response.id:
                         score += 1
@@ -121,7 +152,6 @@ class CreateResultMutation(graphene.Mutation):
                         score += 1
                     else:
                         wrong += 1
-            print("wrong:{} and correct: {}".format(wrong, score))
             question_count = quiz.question_set.all().count()
             result = Results(quiz=quiz, user=user, score=score, total_questions=question_count)
             result.save()

@@ -15,7 +15,6 @@ class UserProfileType(DjangoObjectType):
     # GraphQL Type for user's profile
     class Meta:
         model = Profile
-        fields = ("user",)
 
 class UserType(DjangoObjectType):
     # GraphQl type for user

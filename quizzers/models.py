@@ -10,6 +10,7 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+
 # Schema object for user profile
 # ToDo - Nothing in mind right now
 class Profile(models.Model):
@@ -19,9 +20,11 @@ class Profile(models.Model):
     quiz_loss = models.IntegerField(default=0)
     coins = models.FloatField(default=100.00)
     is_club_creator = models.BooleanField(default=False)
+    profile_pic = models.FileField(max_length=100, upload_to="profile_pics", blank=True, null=True)
 
     def __str__(self):
-        return "Profile object for User Id: %s" % (self.user.pk)
+        return "Profile object for User Id: {}".format(self.user.pk)
+
 
 # Schema object for a quiz club
 # Todo - Nothing right now
@@ -30,7 +33,7 @@ class Club(models.Model):
     category = models.ForeignKey(Category, on_delete=models.DO_NOTHING, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     max_players = models.IntegerField(default=1)
-    created_on = models.DateField(default=timezone.now)    
+    created_on = models.DateField(default=timezone.now)
     creator = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name="creator")
     members = models.ManyToManyField(User, related_name="members")
     club_admins = models.ManyToManyField(User, related_name="admins")
