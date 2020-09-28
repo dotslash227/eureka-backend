@@ -25,7 +25,9 @@ class UserStatType(graphene.ObjectType):
     quiz_taken = graphene.Int()
     quiz_won = graphene.Int()
     quiz_lost = graphene.Int()
-    win_percentage = graphene.Float()
+    win_rate = graphene.String()
+    loss_rate = graphene.String()
+    ties = graphene.Int()
 class QuizResponseType(graphene.InputObjectType):
     question_id = graphene.String(required=True)
     answer = graphene.String(required=True)
@@ -33,6 +35,7 @@ class QuizResponseType(graphene.InputObjectType):
 
 # Queries for quizzes
 class Query(object):
+    # Still need to work on ties
     quiz_by_clubs = graphene.List(QuizType, clubId=graphene.Int(required=True))
     questions_by_quiz = graphene.List(QuestionType, quizId=graphene.Int(required=True))
     options_by_question = graphene.List(OptionType, questionId=graphene.Int(required=True))
@@ -42,7 +45,7 @@ class Query(object):
     user_stats = graphene.Field(UserStatType, userId=graphene.Int(required=True))
 
     def resolve_user_stats(self, info, **kwargs):
-        taken, won, lost, win_percentage = 0, 0, 0, 0.00
+        taken, won, lost, ties, win_percentage = 0, 0, 0, 0, 0.00
         user_id = kwargs.get("userId")
         user = User.objects.get(pk=user_id)
         results = Results.objects.filter(user=user)
@@ -52,12 +55,15 @@ class Query(object):
                 won += 1
             else:
                 lost += 1
-        win_percentage = won / taken * 100
+        win_percentage = round(won / taken * 100, 1)
+        loss_percentage = round(lost / taken * 100, 1)
         user_stat = {
             "quiz_taken":taken,
             "quiz_won":won,
             "quiz_lost": lost,
-            "win_percentage": win_percentage
+            "win_rate": "{} %".format(win_percentage),
+            "loss_rate": "{} %".format(loss_percentage),
+            "ties": ties
         }
         return user_stat
 
